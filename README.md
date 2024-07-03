@@ -6,15 +6,23 @@ Exposes an API, which requires a super API token, that can be used to add, remov
 
 ## Requests
 
-`POST`
+```POST /api/?type=module&prefix=UserAllowListAPI&page=api
+
+body {
+    "token": "string"  // Superuser token
+    "action": "string" // 'add', 'remove', 'search'
+    "user": "username" 
+}
+
+```
 
 ## Responses
 
-```json
+```sh
 {
-    "status": "string", // 'success' or 'failure'
+    "status": "string",  // 'success' or 'failure'
     "message": "string", // Explination of action that occured
-    "value": bool // ture or false. Null on error
+    "value": bool        // ture or false. Null on error
 }
 ```
 
