@@ -7,26 +7,38 @@ use RestUtility;
 
 class UserAllowListAPI extends AbstractExternalModule
 {
+    private $requestingUser;
+
     public function process()
     {
         $result = [
             'status' => 'failure',
-            'message' => '',
+            'message' => 'Invalid token',
             'value' => null
         ];
-        $request = RestUtility::processRequest(true);
-        $params = $request->getRequestVars(); // token, user, action
-        $action = $params['action'];
-        $user = $params['user'];
 
-        // Token was already validated by the API framework
-        // we can just check the length
-        if (strlen($params['token']) !== 64) {
-            $result['message'] = 'Invalid token';
+        $token = $this->sanitizeAPIToken($_POST['token']);
+        $action = $_POST['action'];
+        $user = $_POST['user'];
+
+        if (strlen($token) !== 64) {
             return $result;
         }
 
-        if (empty($action) || empty($params['action'])) {
+        $q = $this->query("
+        SELECT username, super_user
+        FROM redcap_user_information
+        WHERE api_token = ?
+        AND user_suspended_time IS NULL
+        LIMIT 1", $token);
+
+        if (!($q && $q !== false && db_num_rows($q) == 1)) {
+            return $result;
+        }
+
+        $this->requestingUser = db_fetch_assoc($q)["username"];
+
+        if (empty($action) || empty($user)) {
             $result['message'] = 'Missing user or action';
             return $result;
         }
@@ -44,14 +56,14 @@ class UserAllowListAPI extends AbstractExternalModule
 
     private function add($username)
     {
-        $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', [$username]);
-        if ($this->getRowCount() > 0) {
+        $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
+        if (db_num_rows($q) > 0) {
             return [
                 'message' => 'User already in allow list',
                 'value' => false
             ];
         }
-        $this->query('INSERT INTO redcap_user_allowlist (username) VALUES (?)', [$username]);
+        $this->query('INSERT INTO redcap_user_allowlist (username) VALUES (?)', $username);
         return [
             'message' => 'User added to allow list',
             'value' => true
@@ -60,14 +72,14 @@ class UserAllowListAPI extends AbstractExternalModule
 
     private function remove($username)
     {
-        $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', [$username]);
-        if ($this->getRowCount() === 0) {
+        $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
+        if (db_num_rows($q) === 0) {
             return [
                 'message' => 'User not in allow list',
                 'value' => false
             ];
         }
-        $this->query('DELETE FROM redcap_user_allowlist WHERE username = ?', [$username]);
+        $this->query('DELETE FROM redcap_user_allowlist WHERE username = ?', $username);
         return [
             'message' => 'User removed from allow list',
             'value' => true
@@ -76,8 +88,8 @@ class UserAllowListAPI extends AbstractExternalModule
 
     private function search($username)
     {
-        $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', [$username]);
-        if ($this->getRowCount() === 0) {
+        $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
+        if (db_num_rows($q) === 0) {
             return [
                 'message' => 'User not in allow list',
                 'value' => false
