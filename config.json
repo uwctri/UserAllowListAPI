@@ -1,0 +1,16 @@
+{
+    "name": "User AllowList API",
+    "description": "Exposes an API to add, remove, and search the user allowlist",
+    "namespace": "UWMadison\\UserAllowListAPI",
+    "authors": [
+        {
+            "name": "Adam Nunez",
+            "email": "Adam.Nunez@ctri.wisc.edu",
+            "institution": "UW Madison - Center for Tobacco Research and Intervention"
+        }
+    ],
+    "no-auth-pages": [
+        "api"
+    ],
+    "framework-version": 14
+}
