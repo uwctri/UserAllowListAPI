@@ -12,5 +12,8 @@
     "no-auth-pages": [
         "api"
     ],
+    "no-csrf-pages": [
+        "api"
+    ],
     "framework-version": 14
 }
