@@ -3,7 +3,7 @@
 namespace UWMadison\UserAllowListAPI;
 
 use ExternalModules\AbstractExternalModule;
-use RestUtility;
+use Logging;
 
 class UserAllowListAPI extends AbstractExternalModule
 {
@@ -54,18 +54,35 @@ class UserAllowListAPI extends AbstractExternalModule
         );
     }
 
+    private function systemLog($sql, $username, $msg)
+    {
+        Logging::logEvent(
+            $sql,
+            "redcap_user_allowlist",
+            "MANAGE",
+            null,
+            "username = '$username'",
+            "Add users to allowlist (API)",
+            "",
+            $this->requestingUser,
+            "0"
+        );
+    }
+
     private function add($username)
     {
         $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
         if (db_num_rows($q) > 0) {
             return [
-                'message' => 'User already in allow list',
+                'message' => 'User already in allowlist',
                 'value' => false
             ];
         }
-        $this->query('INSERT INTO redcap_user_allowlist (username) VALUES (?)', $username);
+        $sql = 'INSERT INTO redcap_user_allowlist (username) VALUES (?)';
+        $this->query($sql, $username);
+        $this->systemLog($sql, $username, "Add user to allowlist (API)");
         return [
-            'message' => 'User added to allow list',
+            'message' => 'User added to allowlist',
             'value' => true
         ];
     }
@@ -75,13 +92,15 @@ class UserAllowListAPI extends AbstractExternalModule
         $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
         if (db_num_rows($q) === 0) {
             return [
-                'message' => 'User not in allow list',
+                'message' => 'User not in allowlist',
                 'value' => false
             ];
         }
-        $this->query('DELETE FROM redcap_user_allowlist WHERE username = ?', $username);
+        $sql = 'DELETE FROM redcap_user_allowlist WHERE username = ?';
+        $this->query($sql, $username);
+        $this->systemLog($sql, $username, "Remove user from allowlist (API)");
         return [
-            'message' => 'User removed from allow list',
+            'message' => 'User removed from allowlist',
             'value' => true
         ];
     }
@@ -91,12 +110,12 @@ class UserAllowListAPI extends AbstractExternalModule
         $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
         if (db_num_rows($q) === 0) {
             return [
-                'message' => 'User not in allow list',
+                'message' => 'User not in allowlist',
                 'value' => false
             ];
         }
         return [
-            'message' => 'User found in allow list',
+            'message' => 'User found in allowlist',
             'value' => true
         ];
     }
