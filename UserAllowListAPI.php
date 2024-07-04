@@ -62,17 +62,22 @@ class UserAllowListAPI extends AbstractExternalModule
             "MANAGE",
             null,
             "username = '$username'",
-            "Add users to allowlist (API)",
+            $msg,
             "",
             $this->requestingUser,
             "0"
         );
     }
 
-    private function add($username)
+    private function userExists($username)
     {
         $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
-        if (db_num_rows($q) > 0) {
+        return db_num_rows($q);
+    }
+
+    private function add($username)
+    {
+        if ($this->userExists($username) > 0) {
             return [
                 'message' => 'User already in allowlist',
                 'value' => false
@@ -89,8 +94,7 @@ class UserAllowListAPI extends AbstractExternalModule
 
     private function remove($username)
     {
-        $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
-        if (db_num_rows($q) === 0) {
+        if ($this->userExists($username) === 0) {
             return [
                 'message' => 'User not in allowlist',
                 'value' => false
@@ -107,14 +111,10 @@ class UserAllowListAPI extends AbstractExternalModule
 
     private function search($username)
     {
-        $q = $this->query('SELECT * FROM redcap_user_allowlist WHERE username = ?', $username);
-        if (db_num_rows($q) === 0) {
-            return [
-                'message' => 'User not in allowlist',
-                'value' => false
-            ];
-        }
-        return [
+        return $this->userExists($username) === 0 ? [
+            'message' => 'User not in allowlist',
+            'value' => false
+        ] : [
             'message' => 'User found in allowlist',
             'value' => true
         ];
