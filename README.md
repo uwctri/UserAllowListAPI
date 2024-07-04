@@ -7,7 +7,7 @@ Exposes an API, which requires a super API token, that can be used to add, remov
 ## Requests
 
 ```sh
-POST /api/?type=module&prefix=UserAllowListAPI&page=api
+POST /api/?type=module&prefix=user_allowlist_api&page=api
 
 body {
     "token": "string"  // Superuser token
