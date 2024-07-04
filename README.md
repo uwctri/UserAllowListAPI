@@ -2,7 +2,7 @@
 
 ## What does it do?
 
-Exposes an API, which requires a super API token, that can be used to add, remove, or search for user names in the Redcap allowlist.
+Exposes an API, which requires a super API token, that can be used to add, remove, or search for user names in the Redcap allowlist. This is useful for organizations that want to automate an access managment workflow managed by an external system.
 
 ## Requests
 
